@@ -1,0 +1,7 @@
+{
+    "require": {
+        "greenter/lite": "^5.1",
+        "dompdf/dompdf": "^3.0",
+        "endroid/qr-code": "^6.0"
+    }
+}
