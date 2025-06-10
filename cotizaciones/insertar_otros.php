@@ -38,7 +38,7 @@ try {
         $sql = "INSERT INTO productos
                   (Nombre, Descripcion, PrecioUnitario, UnidadMedida, Codigo, CategoriaID, estado, fecha_creacion, fecha_actualizacion)
                 VALUES
-                  (:nombre, :descripcion, :precio, 'Ud', NULL, NULL, '1', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)";
+                  (:nombre, :descripcion, :precio, 'ZZ', NULL, NULL, '1', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)";
         $params = [
             ':nombre'      => $nombre,
             ':descripcion' => $descripcion,

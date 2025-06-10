@@ -1,8 +1,8 @@
 <?php
 
 //Definir las constantes para la conexion a la base de datos
-define('SERVIDOR','tufibra.ddns.net');
-define('PUERTO','8204');
+define('SERVIDOR','localhost');
+define('PUERTO','3306');
 define('USUARIO','root');
 define('PASSWORD','digital12');
 define('BD','sehuacho');
@@ -20,7 +20,7 @@ try{
 }
 
 //Definir la variable $URL con la ruta del sistema
-$URL = "http://localhost/sehuacho/";
+$URL = "https://tufibra.ddns.net/sehuacho/";
 
 //Definir la zona horaria
 date_default_timezone_set("America/lima");
