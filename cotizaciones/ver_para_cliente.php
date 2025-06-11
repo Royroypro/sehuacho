@@ -41,7 +41,7 @@ $pdfUrl = "generar_pdf.php?id={$cot['CotizacionID']}";
 // Preparar teléfono con código de país (Perú +51)
 $soloDigitos = $cot['celular'] === null ? '' : preg_replace('/\D+/', '', $cot['celular']);
 $telefonoWs = '51' . ltrim($soloDigitos, '0');
-$nombre_cotizacion = $cot['Nombre'];
+$nombre_cotizacion = $coset['Nombre'];
 $linkVer = "{$URL}/cotizaciones/ver_para_cliente.php?codigo={$codigo}";
 $wspMsg = urlencode("Tu cotización de {$nombre_cotizacion}  (#{$codigo}) está lista: {$linkVer}");
 $wspUrl = "https://api.whatsapp.com/send?text={$wspMsg}";
@@ -52,7 +52,7 @@ $wspUrl = "https://api.whatsapp.com/send?text={$wspMsg}";
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cotización #<?= htmlspecialchars($cot['CotizacionID']) ?></title>
+    <title>SEGURIDAD ELECTRONICA HUACHO</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Estilos personalizados -->
