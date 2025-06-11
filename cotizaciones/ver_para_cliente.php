@@ -114,7 +114,7 @@ $wspUrl = "https://api.whatsapp.com/send?text={$wspMsg}";
                             <dd class="col-sm-8 fw-bold">S/ <?= number_format($cot['Total'], 2) ?></dd>
                         </dl>
                         <div class="text-center mt-4">
-                            <p>Para más información contactar a  <strong>+51 948 793 154</strong></a>.</p>
+                            <a href="https://api.whatsapp.com/send?phone=51948793154&amp;text=Hola%2C%20necesito%20m%C3%A1s%20informaci%C3%B3n%20sobre%20la%20cotizaci%C3%B3n%20%23<?= htmlspecialchars($cot['CotizacionID']) ?>%20(<?= htmlspecialchars($cot['Nombre']) ?>)" target="_blank" class="btn btn-success">Contactar con un Personal</a>
                         </div>
 
 
