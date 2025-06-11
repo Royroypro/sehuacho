@@ -114,7 +114,7 @@ $wspUrl = "https://api.whatsapp.com/send?text={$wspMsg}";
                             <dd class="col-sm-8 fw-bold">S/ <?= number_format($cot['Total'], 2) ?></dd>
                         </dl>
                         <div class="text-center mt-4">
-                            <p>Este es el número +51 948 793 154</p>
+                            <p>Para más información contactar a  <strong>+51 948 793 154</strong></a>.</p>
                         </div>
 
 
