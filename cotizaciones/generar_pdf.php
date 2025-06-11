@@ -300,19 +300,66 @@ ob_start(); ?>
       $totalConIGVServ = $netoServicios + $igvServicios;
     ?>
 
-    <div class="totals">
-      <p><strong>Subtotal Servicios:</strong> S/. <?= number_format($subtotalServicios,2) ?></p>
-      <p>
-        <strong>Descuento Servicios :</strong>
-        S/. <?= number_format($montoDescServ,2) ?>
-      </p>
-      <p><strong>Neto Servicios:</strong> S/. <?= number_format($netoServicios,2) ?></p>
-      <p>
-        <strong>IGV Servicios (<?= $cot['ImpuestoID'] == 1 ? '0' : '18' ?>%):</strong>
-        S/. <?= number_format($igvServicios,2) ?>
-      </p>
-      <p><strong>Total Servicios:</strong> S/. <?= number_format($totalConIGVServ,2) ?></p>
-    </div>
+ <div class="totals">
+  <p><strong>Subtotal Servicios:</strong> S/. <?= number_format($subtotalServicios,2) ?></p>
+  <p>
+    <strong>Descuento Servicios :</strong>
+    S/. <?= number_format($montoDescServ,2) ?>
+  </p>
+  <p><strong>Neto Servicios:</strong> S/. <?= number_format($netoServicios,2) ?></p>
+  <p>
+    <strong>IGV Servicios (<?= $cot['ImpuestoID'] == 1 ? '0' : '18' ?>%):</strong>
+    S/. <?= number_format($igvServicios,2) ?>
+  </p>
+  <p><strong>Total Servicios:</strong> S/. <?= number_format($totalConIGVServ,2) ?></p>
+</div>
+<br>
+<div class="totals">
+    <p><strong>TOTAL GENERAL:</strong> S/. <?= number_format($totalGeneral,2) ?></p>
+  </div>
+<?php if ($totalConIGVServ > 699): ?>
+  <?php
+    // Cálculos de detracción y depósito directo
+    $porcentajeDetraccion = 0.12;
+    $montoDetraccion     = $totalConIGVServ * $porcentajeDetraccion;
+    $montoDirecto        = $totalConIGVServ - $montoDetraccion;
+  ?>
+  <p><strong>Sujeto a detracciones</strong> </p>
+  <table style="width:100%; border-collapse: collapse; border: 1px solid #000; margin-top:1em;">
+    <thead>
+      <tr>
+        <th style="border:1px solid #000; padding:8px; text-align:left;">Concepto</th>
+        <th style="border:1px solid #000; padding:8px; text-align:left;">Cuenta</th>
+        <th style="border:1px solid #000; padding:8px; text-align:right;">Monto a depositar</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Depósito directo -->
+      <tr>
+        <td style="border:1px solid #000; padding:8px; font-weight:bold;">Directamente</td>
+        <td style="border:1px solid #000; padding:8px;">
+          <strong>BCP:</strong> 33503851999024<br>
+          <strong>Cuenta Interbancaria:</strong> 0023350385199902485
+        </td>
+        <td style="border:1px solid #000; padding:8px; text-align:right;">
+          S/. <?= number_format($montoDirecto,2) ?>
+        </td>
+      </tr>
+      <!-- Depósito de detracción -->
+      <tr>
+        <td style="border:1px solid #000; padding:8px; background:#ff0; font-weight:bold;">Cuenta de detracciones(12%)</td>
+        <td style="border:1px solid #000; padding:8px; background:#ff0;">
+          <strong>Cuenta Corriente:</strong> 00-321-134017<br>
+          <strong>Código Interbancario:</strong> 01832100032113401703
+        </td>
+        <td style="border:1px solid #000; padding:8px; background:#ff0; text-align:right;">
+          S/. <?= number_format($montoDetraccion,2) ?>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+<?php endif; ?>
+
 
     <?php if ($igvServicios == 0): ?>
       <p style="color:red; font-weight:bold; margin-top:5px;">
@@ -321,17 +368,16 @@ ob_start(); ?>
     <?php endif; ?>
   <?php endif; ?>
 
+  
 
   <?php
     // Total general unificando ambas secciones
     $totalGeneral = (isset($totalConIGVProd) ? $totalConIGVProd : 0) + (isset($totalConIGVServ) ? $totalConIGVServ : 0);
   ?>
-  <div class="totals">
-    <p><strong>TOTAL GENERAL:</strong> S/. <?= number_format($totalGeneral,2) ?></p>
-  </div>
+
 
   <div class="notas">
-    <p><strong>Suma total: S/. <?= number_format($totalGeneral,2) ?>.</strong></p>
+ 
     <?php if (count($detServ)): ?>
       <p>Para iniciar el trabajo, se requiere un pago del 50% del monto total de mano de obra.</p>
     <?php endif; ?>
