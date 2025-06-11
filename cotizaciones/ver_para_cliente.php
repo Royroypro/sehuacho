@@ -113,6 +113,10 @@ $wspUrl = "https://api.whatsapp.com/send?text={$wspMsg}";
                             <dt class="col-sm-4">Total:</dt>
                             <dd class="col-sm-8 fw-bold">S/ <?= number_format($cot['Total'], 2) ?></dd>
                         </dl>
+                        <div class="text-center mt-4">
+                            <p>Este es el número +51 948 793 154</p>
+                        </div>
+
 
                         <div class="d-flex justify-content-center gap-3 mt-4">
                             <a href="<?= $pdfUrl ?>" class="btn btn-primary">Descargar PDF</a>
