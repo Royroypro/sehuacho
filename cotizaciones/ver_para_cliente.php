@@ -41,7 +41,7 @@ $pdfUrl = "generar_pdf.php?id={$cot['CotizacionID']}";
 // Preparar teléfono con código de país (Perú +51)
 $soloDigitos = $cot['celular'] === null ? '' : preg_replace('/\D+/', '', $cot['celular']);
 $telefonoWs = '51' . ltrim($soloDigitos, '0');
-$nombre_cotizacion = $coset['Nombre'];
+$nombre_cotizacion = $cot['Nombre'];
 $linkVer = "{$URL}/cotizaciones/ver_para_cliente.php?codigo={$codigo}";
 $wspMsg = urlencode("Tu cotización de {$nombre_cotizacion}  (#{$codigo}) está lista: {$linkVer}");
 $wspUrl = "https://api.whatsapp.com/send?text={$wspMsg}";
