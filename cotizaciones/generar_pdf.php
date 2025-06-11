@@ -149,7 +149,7 @@ ob_start(); ?>
     margin: 3px 0; /* Reduced top margin */
     text-align: center;
     color: var(--primary);
-    margin-top: -40px;
+    margin-top: -20px;
   }
   h3 {
     color: var(--secondary);
@@ -209,9 +209,10 @@ ob_start(); ?>
     <div class="info"><?= htmlspecialchars($empresa['distrito'] ?? 'Huacho') ?>, <?= htmlspecialchars($fechaHoy) ?></div>
   </div>
 <br>
-  <h2 style="font-size: 16px;"><?= htmlspecialchars($empresa['nombre_comercial'] ?? '') ?></h2>
-  <!--<p style="font-size: 12px; margin-bottom: 10px; text-align: center;"><?= htmlspecialchars($empresa['razon_social'] ?? '') ?></p>-->
-  <!--<h3><?= htmlspecialchars($cot['Nombre']) ?></h3>-->
+  <h3><?= htmlspecialchars($cot['Nombre']) ?></h3>
+  
+  <p style="font-size: 12px; margin-bottom: 10px; text-align: center;">SERVICIOS DE SEGURIDAD ELECTRONICA, GASFITERIA Y ELECTRICIDAD</p>
+  
 
   <p><strong>Sres:</strong> <?= htmlspecialchars("{$cot['nombre']} {$cot['apellido_paterno']} {$cot['apellido_materno']}") ?></p>
   <?php if (!empty($cot['dni_ruc'])): ?>
