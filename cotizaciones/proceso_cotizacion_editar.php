@@ -61,23 +61,27 @@ $impGenHdr = $impProd + $impServ;
 $totGenHdr = $stGenHdr + $impGenHdr;
 $impuestoID = $impGenHdr>0.001? 2:1;
 
+
 try {
     $pdo->beginTransaction();
 
-    if ($cotID > 0) {
-        // --- ACTUALIZAR CABECERA ---
+    if (isset($cotID) && $cotID > 0) {
+        // --- ACTUALIZAR CABECERA EXISTENTE ---
+        $codigo = sha1($cotID);
+
         $sql = "UPDATE cotizaciones SET
-                  Nombre         = :nombre,
-                  ClienteID      = :cliente,
-                  FechaCotizacion= :fCot,
-                  FechaValidez   = :fVal,
-                  Estado         = :estado,
-                  Notas          = :notas,
-                  Subtotal       = :sub,
-                  Impuestos      = :imp,
-                  Total          = :total,
-                  ImpuestoID     = :impuestoID,
-                  Descuento      = :descuento_total
+                  Nombre          = :nombre,
+                  ClienteID       = :cliente,
+                  FechaCotizacion = :fCot,
+                  FechaValidez    = :fVal,
+                  Estado          = :estado,
+                  Notas           = :notas,
+                  Subtotal        = :sub,
+                  Impuestos       = :imp,
+                  Total           = :total,
+                  ImpuestoID      = :impuestoID,
+                  Descuento       = :descuento_total,
+                  codigo          = :codigo
                 WHERE CotizacionID = :id";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([
@@ -87,27 +91,29 @@ try {
             ':fVal'            => $fechaVal,
             ':estado'          => $estado,
             ':notas'           => $notas,
-            ':sub'             => round($stGenHdr,2),
-            ':imp'             => round($impGenHdr,2),
-            ':total'           => round($totGenHdr,2),
+            ':sub'             => round($stGenHdr, 2),
+            ':imp'             => round($impGenHdr, 2),
+            ':total'           => round($totGenHdr, 2),
             ':impuestoID'      => $impuestoID,
-            ':descuento_total' => round($descTotGen,2),
+            ':descuento_total' => round($descTotGen, 2),
+            ':codigo'          => $codigo,
             ':id'              => $cotID
         ]);
 
-        // --- BORRAR DETALLES EXISTENTES ---
-        $pdo->prepare("DELETE FROM detallecotizacion_productos  WHERE CotizacionID = :id")
-            ->execute([':id'=>$cotID]);
+        // Borrar detalles antiguos
+        $pdo->prepare("DELETE FROM detallecotizacion_productos WHERE CotizacionID = :id")
+            ->execute([':id' => $cotID]);
         $pdo->prepare("DELETE FROM detallecotizacion_servicios WHERE CotizacionID = :id")
-            ->execute([':id'=>$cotID]);
+            ->execute([':id' => $cotID]);
+
     } else {
-        // --- INSERTAR NUEVA CABECERA ---
+        // --- INSERTAR NUEVA CABECERA SIN CÓDIGO ---
         $sql = "INSERT INTO cotizaciones
-                 (Nombre,ClienteID,FechaCotizacion,FechaValidez,Estado,Notas,
-                  Subtotal,Impuestos,Total,ImpuestoID,Descuento)
+                 (Nombre, ClienteID, FechaCotizacion, FechaValidez, Estado, Notas,
+                  Subtotal, Impuestos, Total, ImpuestoID, Descuento)
                 VALUES
-                 (:nombre,:cliente,:fCot,:fVal,:estado,:notas,
-                  :sub,:imp,:total,:impuestoID,:descuento_total)";
+                 (:nombre, :cliente, :fCot, :fVal, :estado, :notas,
+                  :sub, :imp, :total, :impuestoID, :descuento_total)";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([
             ':nombre'          => $nombreCot,
@@ -116,44 +122,63 @@ try {
             ':fVal'            => $fechaVal,
             ':estado'          => $estado,
             ':notas'           => $notas,
-            ':sub'             => round($stGenHdr,2),
-            ':imp'             => round($impGenHdr,2),
-            ':total'           => round($totGenHdr,2),
+            ':sub'             => round($stGenHdr, 2),
+            ':imp'             => round($impGenHdr, 2),
+            ':total'           => round($totGenHdr, 2),
             ':impuestoID'      => $impuestoID,
-            ':descuento_total' => round($descTotGen,2),
+            ':descuento_total' => round($descTotGen, 2)
         ]);
+
+        // 1) Obtener el nuevo ID generado
         $cotID = $pdo->lastInsertId();
+        // 2) Calcular su hash
+        $codigo = sha1($cotID);
+        // 3) Actualizar solo la columna codigo (en minúsculas)
+        $pdo->prepare("UPDATE cotizaciones
+                       SET codigo = :codigo
+                       WHERE CotizacionID = :id")
+            ->execute([
+                ':codigo' => $codigo,
+                ':id'     => $cotID
+            ]);
     }
 
-    // Preparar inserción de detalles
-    $insProd = $pdo->prepare("INSERT INTO detallecotizacion_productos
-        (CotizacionID,ProductoID,Cantidad,PrecioUnitario,Descripcion,Descuento,Impuesto,Subtotal)
-        VALUES (:cot,:id,:cant,:precio,:desc,:descuento_item,:imp_item,:sub_item)");
-    $insServ = $pdo->prepare("INSERT INTO detallecotizacion_servicios
-        (CotizacionID,ServicioID,Cantidad,PrecioUnitario,Descripcion,Descuento,Impuesto,Subtotal)
-        VALUES (:cot,:id,:cant,:precio,:desc,:descuento_item,:imp_item,:sub_item)");
+    // --- PREPARAR INSERCIÓN DE DETALLES ---
+    $insProd = $pdo->prepare("
+        INSERT INTO detallecotizacion_productos
+          (CotizacionID, ProductoID, Cantidad, PrecioUnitario, Descripcion,
+           Descuento, Impuesto, Subtotal)
+        VALUES (:cot, :id, :cant, :precio, :desc, :descuento_item, :imp_item, :sub_item)
+    ");
+    $insServ = $pdo->prepare("
+        INSERT INTO detallecotizacion_servicios
+          (CotizacionID, ServicioID, Cantidad, PrecioUnitario, Descripcion,
+           Descuento, Impuesto, Subtotal)
+        VALUES (:cot, :id, :cant, :precio, :desc, :descuento_item, :imp_item, :sub_item)
+    ");
 
-    // Insertar cada item con descuento prorrateado
     foreach ($data['items'] as $item) {
-        $stItem = $item['cantidad'] * $item['precioUnitario'];
-        $tasaIgv = (float)$data['igv'][$item['tipo']];
-        $impItem= $stItem * $tasaIgv;
-        // prorrateo
-        $prorrateo = $item['tipo']==='producto'
-            ? ($subProdSin>0? $descProdTot * ($stItem/$subProdSin) : 0)
-            : ($subServSin>0? $descServTot * ($stItem/$subServSin) : 0);
-        $prorrateo = max(0,min($prorrateo,$stItem));
+        $stItem   = $item['cantidad'] * $item['precioUnitario'];
+        $tasaIgv  = (float)$data['igv'][$item['tipo']];
+        $impItem  = $stItem * $tasaIgv;
+        // Prorrateo de descuento
+        $prorrateo = ($item['tipo'] === 'producto')
+            ? ($subProdSin > 0 ? $descProdTot * ($stItem / $subProdSin) : 0)
+            : ($subServSin > 0 ? $descServTot * ($stItem / $subServSin) : 0);
+        $prorrateo = max(0, min($prorrateo, $stItem));
+
         $params = [
             ':cot'            => $cotID,
             ':id'             => (int)$item['id'],
             ':cant'           => (float)$item['cantidad'],
             ':precio'         => (float)$item['precioUnitario'],
-            ':desc'           => $item['tipo']==='producto'? $descProdSec:$descServSec,
-            ':descuento_item' => round($prorrateo,2),
-            ':imp_item'       => round($impItem,2),
-            ':sub_item'       => round($stItem,2),
+            ':desc'           => $item['tipo'] === 'producto' ? $descProdSec : $descServSec,
+            ':descuento_item' => round($prorrateo, 2),
+            ':imp_item'       => round($impItem, 2),
+            ':sub_item'       => round($stItem, 2),
         ];
-        if ($item['tipo']==='producto') {
+
+        if ($item['tipo'] === 'producto') {
             $insProd->execute($params);
         } else {
             $insServ->execute($params);
@@ -161,11 +186,20 @@ try {
     }
 
     $pdo->commit();
-    echo json_encode(['success'=>true,'id_cotizacion'=>$cotID]);
 
-} catch (Exception $e) {
-    if ($pdo->inTransaction()) $pdo->rollBack();
+    echo json_encode([
+        'success'         => true,
+        'id_cotizacion'   => $cotID,
+        'codigo_hasheado' => $codigo
+    ]);
+
+} catch (PDOException $e) {
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
     http_response_code(500);
-    error_log("Error cotización: ".$e->getMessage());
-    echo json_encode(['success'=>false,'error'=>'Error al guardar cotización']);
+    echo json_encode([
+        'success' => false,
+        'error'   => $e->getMessage()
+    ]);
 }

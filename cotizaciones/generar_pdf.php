@@ -3,6 +3,7 @@
 require_once __DIR__ . '/../facturas/vendor/autoload.php';
 include_once __DIR__ . '/../app/config.php';  // define $pdo (PDO)
 
+
 date_default_timezone_set('America/Lima');
 
 // --- LOGO BASE64 ---
@@ -28,7 +29,6 @@ if (file_exists($logoPath)) {
 
 $cot_id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 if (!$cot_id) die('ID de cotización inválido');
-
 // 2. Datos empresa
 $sqlEmp = "SELECT e.ruc, e.razon_social, e.nombre_comercial, d.departamento, d.provincia, d.distrito, d.direccion AS dir_completa
            FROM empresas e
@@ -100,6 +100,12 @@ $totalGeneral = $totalProductosConIGV + $totalServiciosConIGV;
 $fmt = new IntlDateFormatter('es_PE', IntlDateFormatter::LONG, IntlDateFormatter::NONE, 'America/Lima');
 $fechaHoy = $fmt->format(new DateTime());
 
+include_once __DIR__ . '/generar_qr.php'; // Funciones de utilidades
+
+
+
+
+// Terminar el script para evitar que se envíe más contenido
 // 7. Generar HTML
 ob_start(); ?>
 <!DOCTYPE html>
@@ -107,101 +113,107 @@ ob_start(); ?>
 <head>
   <meta charset="UTF-8">
   <style>
-    :root {
-      --primary: #005691;
-      --secondary: #0073c8;
-      --green: rgb(83, 207, 112);
-      --text-dark: #000;
-      --footer-border: #cccccc;
-      --footer-text: #555555;
-    }
-    body {
-      font-family: DejaVu Sans, sans-serif;
-      font-size: 12px;
-      margin: 5px;
-      color: var(--text-dark);
-    }
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 5px;
-    }
-    .header img {
-      max-height: 80px;
-      max-width: 200px;
-      width: auto;
-      height: auto;
-    }
-    .header .info {
-      text-align: right;
-      font-size: 12px;
-    }
-    h2, h3 {
-      margin: 5px 0;
-      text-align: center;
-      color: var(--primary);
-    }
-    h3 {
-      color: var(--secondary);
-    }
-    h4 {
-      margin: 15px 0 5px 0;
-      color: var(--secondary);
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 10px;
-    }
-    th, td {
-      border: 1px solid #000;
-      padding: 5px;
-    }
-    th {
-      background-color: var(--green);
-      color: #000;
-      text-align: left;
-    }
-    .right {
-      text-align: right;
-    }
-    .totals {
-      text-align: right;
-      margin-top: 5px;
-    }
-    .totals p {
-      margin: 2px 0;
-    }
-    .notas {
-      font-size: 11px;
-      margin-top: 15px;
-    }
-    .footer {
-      border-top: 1px solid var(--footer-border);
-      margin-top: 15px;
-      padding-top: 10px;
-      font-size: 10px;
-      color: var(--footer-text);
-      text-align: center;
-    }
-  </style>
+  :root {
+    --primary: #005691;
+    --secondary: #0073c8;
+    --green: rgb(83, 207, 112);
+    --text-dark: #000;
+    --footer-border: #cccccc;
+    --footer-text: #555555;
+  }
+  body {
+    font-family: DejaVu Sans, sans-serif;
+    font-size: 12px;
+    margin: 0px;
+    color: var(--text-dark);
+  }
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: -18px;
+  }
+  .header img {
+    max-height: 120px;
+    max-width: 190px;
+    width: auto;
+    height: auto;
+    margin: 0;
+  }
+  .header .info {
+    text-align: right;
+    font-size: 12px;
+    margin-top: -100px;
+  }
+  h2, h3 {
+    margin: 3px 0; /* Reduced top margin */
+    text-align: center;
+    color: var(--primary);
+    margin-top: -40px;
+  }
+  h3 {
+    color: var(--secondary);
+  }
+  h4 {
+    margin: 12px 0 5px 0; /* Reduced top margin */
+    color: var(--secondary);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 10px;
+  }
+  th, td {
+    border: 1px solid #000;
+    padding: 5px;
+  }
+  th {
+    background-color: var(--green);
+    color: #000;
+    text-align: left;
+  }
+  .right {
+    text-align: right;
+  }
+  .totals {
+    text-align: right;
+    margin-top: 5px;
+  }
+  .totals p {
+    margin: 2px 0;
+  }
+  .notas {
+    font-size: 11px;
+    margin-top: 15px;
+  }
+  .footer {
+    border-top: 1px solid var(--footer-border);
+    margin-top: 15px;
+    padding-top: 10px;
+    font-size: 10px;
+    color: var(--footer-text);
+    text-align: center;
+  }
+</style>
 </head>
 <body>
   <div class="header">
     <?php if ($logoSrc): ?>
-      <img src="<?= $logoSrc ?>" alt="Logo">
+
+     <img src="data:image/png;base64,<?= $qrBase64 ?>" alt="logo"/>
+       <BR></BR>
+
     <?php else: ?>
       <p style="color:red;">Logo no disponible</p>
     <?php endif; ?>
     <div class="info"><?= htmlspecialchars($empresa['distrito'] ?? 'Huacho') ?>, <?= htmlspecialchars($fechaHoy) ?></div>
   </div>
-
+<br>
   <h2 style="font-size: 16px;"><?= htmlspecialchars($empresa['nombre_comercial'] ?? '') ?></h2>
-  <p style="font-size: 12px; margin-bottom: 10px; text-align: center;"><?= htmlspecialchars($empresa['razon_social'] ?? '') ?></p>
-  <h3><?= htmlspecialchars($cot['Nombre']) ?></h3>
+  <!--<p style="font-size: 12px; margin-bottom: 10px; text-align: center;"><?= htmlspecialchars($empresa['razon_social'] ?? '') ?></p>-->
+  <!--<h3><?= htmlspecialchars($cot['Nombre']) ?></h3>-->
 
-  <p><strong>Cliente:</strong> <?= htmlspecialchars("{$cot['nombre']} {$cot['apellido_paterno']} {$cot['apellido_materno']}") ?></p>
+  <p><strong>Sres:</strong> <?= htmlspecialchars("{$cot['nombre']} {$cot['apellido_paterno']} {$cot['apellido_materno']}") ?></p>
   <?php if (!empty($cot['dni_ruc'])): ?>
     <p><strong><?= htmlspecialchars($cot['tipo_documento']) ?>: <?= htmlspecialchars($cot['dni_ruc']) ?></strong></p>
   <?php endif; ?>
@@ -383,12 +395,12 @@ ob_start(); ?>
     <?php endif; ?>
     <p>
       <?= htmlspecialchars($empresa['nombre_comercial'] ?? '') ?> - RUC: <?= htmlspecialchars($empresa['ruc'] ?? '') ?><br>
-      +51 948 793 154<br>
+      Celular: +51 948 793 154<br>
       <?= htmlspecialchars($empresa['distrito'] ?? '') ?><br>
       <?= htmlspecialchars($fechaHoy) ?>
     </p>
   </div>
-
+ 
   <p style="font-size:10px;"><strong>www.sehuacho.com</strong></p>
 </body>
 
